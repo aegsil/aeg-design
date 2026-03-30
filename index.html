@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGSIL — Дизайн для Playerok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #000000;
+    --white: #ffffff;
+    --gray-900: #0a0a0a;
+    --gray-800: #111111;
+    --gray-700: #1a1a1a;
+    --gray-600: #2a2a2a;
+    --gray-400: #666666;
+    --gray-200: #cccccc;
+    --accent: #ffffff;
+    --line: rgba(255,255,255,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Manrope', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CUSTOM CURSOR ── */
+  .cursor {
+    position: fixed; width: 12px; height: 12px; background: #fff;
+    border-radius: 50%; pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease, width 0.25s ease, height 0.25s ease, background 0.25s ease;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    position: fixed; width: 40px; height: 40px;
+    border: 1px solid rgba(255,255,255,0.4); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, width 0.25s ease, height 0.25s ease, opacity 0.25s;
+  }
+  body:hover .cursor { opacity: 1; }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1000; opacity: 0.6;
+  }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(20px); background: rgba(0,0,0,0.6);
+    animation: slideDown 0.8s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+    letter-spacing: 4px; color: #fff; text-decoration: none; position: relative;
+  }
+  .logo::after { content: '®'; font-size: 10px; vertical-align: super; margin-left: 2px; opacity: 0.5; }
+
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    color: var(--gray-200); text-decoration: none; font-size: 13px; font-weight: 500;
+    letter-spacing: 1px; text-transform: uppercase; position: relative; transition: color 0.2s;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: #fff; transition: width 0.3s ease;
+  }
+  .nav-links a:hover { color: #fff; }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-cta {
+    background: #fff; color: #000; border: none; padding: 10px 24px;
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 13px;
+    letter-spacing: 1px; text-transform: uppercase; cursor: none;
+    text-decoration: none; display: inline-block; transition: background 0.2s, transform 0.2s;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+  .nav-cta:hover { background: var(--gray-200); transform: scale(1.04); }
+
+  /* ── HERO / ГЛАВНАЯ ── */
+  .hero {
+    min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center; padding: 120px 48px 60px; position: relative;
+    overflow: hidden; gap: 60px;
+  }
+  .hero-bg-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 60px 60px; z-index: 1;
+  }
+
+  /* ── ЛЕТАЮЩИЕ ОТЗЫВЫ (БАЗОВЫЕ НАСТРОЙКИ) ── */
+  .floating-reviews-container {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .floating-review {
+    position: absolute; background: rgba(17, 17, 17, 0.6); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 16px; border-radius: 6px; font-size: 13px; color: rgba(255,255,255,0.9);
+    line-height: 1.5; max-width: 250px; animation: floatAround 15s infinite ease-in-out;
+  }
+  .floating-review .reviewer { font-weight: 700; color: #fff; margin-bottom: 6px; display: block; letter-spacing: 0.5px;}
+  .floating-review .stars { color: #ffe600; margin-right: 6px; font-size: 14px;}
+
+  @keyframes floatAround {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(15px, 20px) rotate(1.5deg); }
+    50% { transform: translate(5px, -15px) rotate(-1deg); }
+    75% { transform: translate(-10px, 10px) rotate(0.5deg); }
+  }
+
+  /* ПОЗИЦИИ В ГЛАВНОМ БЛОКЕ (ДЛЯ ШИРОКИХ ЭКРАНОВ - 3 ОТЗЫВА) */
+  .hero .floating-reviews-container { z-index: 3; display: block; }
+  .hero .floating-review:nth-child(1) { top: 15%; left: 45%; animation-duration: 20s; animation-delay: 0s; }
+  .hero .floating-review:nth-child(2) { top: 48%; left: 42%; animation-duration: 25s; animation-delay: 2s; z-index: 4; }
+  .hero .floating-review:nth-child(3) { top: 78%; left: 48%; animation-duration: 18s; animation-delay: 1s; }
+
+  /* Секция CTA: отзывы скрыты на больших экранах */
+  .cta-section .floating-reviews-container { display: none; }
+
+  /* ── ЛОГИКА ПЕРЕМЕЩЕНИЯ И СКРЫТИЯ (Для узких экранов или при сильном масштабе) ── */
+  @media (max-width: 1250px) {
+    .hero .floating-reviews-container { display: none; }
+    .cta-section .floating-reviews-container { display: block; z-index: 0; }
+
+    /* Оставляем 2 отзыва, раскидываем по углам, чтобы не было наложений */
+    .cta-section .floating-review:nth-child(1) { top: 20%; left: 5%; animation-duration: 20s; }
+    .cta-section .floating-review:nth-child(2) { top: 60%; right: 5%; left: auto; animation-duration: 25s; }
+  }
+
+  .hero-content { position: relative; z-index: 2; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line);
+    padding: 6px 16px; font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--gray-200); margin-bottom: 32px;
+    animation: fadeUp 0.8s 0.3s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(60px, 8vw, 110px);
+    line-height: 0.9; letter-spacing: 2px; animation: fadeUp 0.9s 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hero h1 .outline { -webkit-text-stroke: 2px rgba(255,255,255,0.8); color: rgba(255,255,255,0.1); display: block; }
+  .hero h1 .filled { display: block; }
+
+  .hero-sub {
+    margin-top: 24px; font-size: 15px; font-weight: 300; color: var(--gray-400);
+    line-height: 1.7; max-width: 420px; animation: fadeUp 1s 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hero-sub strong { color: var(--gray-200); font-weight: 600; }
+
+  .hero-actions {
+    margin-top: 40px; display: flex; align-items: center; gap: 24px;
+    animation: fadeUp 1s 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px; background: #fff; color: #000;
+    text-decoration: none; font-weight: 800; font-size: 14px; letter-spacing: 1px;
+    text-transform: uppercase; padding: 16px 36px; position: relative; transition: all 0.25s ease;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); cursor: none;
+  }
+  .btn-primary:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(255,255,255,0.15); }
+  .btn-primary svg { transition: transform 0.2s; }
+  .btn-primary:hover svg { transform: translate(3px, -3px); }
+
+  .hero-stat { font-size: 12px; color: var(--gray-400); letter-spacing: 1px; }
+  .hero-stat strong { display: block; font-size: 28px; font-family: 'Bebas Neue', sans-serif; color: #fff; letter-spacing: 2px; }
+
+  .hero-visual { position: relative; z-index: 2; animation: fadeUp 1s 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+  .hero-card-stack { position: relative; width: 100%; aspect-ratio: 4/3; max-width: 560px; margin-left: auto; }
+  .hero-card-stack .card-img {
+    position: absolute; width: 75%; aspect-ratio: 4/3; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);
+  }
+  .hero-card-stack .card-img:nth-child(1) { top: 0; right: 0; transform: rotate(4deg); z-index: 1; filter: grayscale(20%); transition: all 0.4s ease; }
+  .hero-card-stack .card-img:nth-child(2) { top: 15%; left: 0; transform: rotate(-3deg); z-index: 2; filter: grayscale(20%); transition: all 0.4s ease 0.05s; }
+  .hero-card-stack:hover .card-img:nth-child(1) { transform: rotate(6deg) translateY(-8px); }
+  .hero-card-stack:hover .card-img:nth-child(2) { transform: rotate(-5deg) translateY(-4px); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+
+  /* ── MARQUEE / БЕГУЩАЯ СТРОКА ── */
+  .marquee-wrap {
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    overflow: hidden; padding: 14px 0; background: var(--gray-900); z-index: 10; position: relative;
+  }
+  .marquee-track { display: flex; gap: 0; animation: marquee 20s linear infinite; white-space: nowrap; }
+  .marquee-item {
+    display: inline-flex; align-items: center; gap: 20px; padding: 0 40px;
+    font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; color: var(--gray-400);
+  }
+  .marquee-item span { color: #fff; }
+  .marquee-dot { width: 4px; height: 4px; background: var(--gray-600); border-radius: 50%; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ── WORKS SECTION / ПОРТФОЛИО ── */
+  .works { padding: 100px 0; position: relative; }
+  .works .section-header {
+    padding: 0 48px; display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 56px; gap: 20px;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--gray-400); margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before { content: ''; display: inline-block; width: 32px; height: 1px; background: var(--gray-400); }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(42px, 5vw, 72px); letter-spacing: 2px; line-height: 0.95; }
+  .section-title .dim { color: rgba(255,255,255,0.7); }
+
+  /* ── БЕСКОНЕЧНЫЙ 3D СЛАЙДЕР С АВТОЗАГРУЗКОЙ ── */
+  .slider-main-container {
+    position: relative; width: 100%; height: 550px; overflow: hidden; display: flex; align-items: center;
+    touch-action: pan-y;
+  }
+  
+  .loading-text {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--gray-400); letter-spacing: 2px;
+    transition: opacity 0.5s;
+  }
+
+  .slider-track {
+    display: flex; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; perspective: 1200px;
+  }
+
+  .slider-item {
+    position: absolute; width: 420px; aspect-ratio: 4/3;
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease, filter 0.8s ease, box-shadow 0.8s ease;
+    cursor: pointer; border-radius: 8px; border: 1px solid var(--line); transform-origin: center center;
+  }
+  .slider-item img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 8px; transition: filter 0.8s ease;
+    pointer-events: none;
+  }
+
+  /* Позиции слайдов */
+  .slider-item.active {
+    transform: translateZ(200px) translateX(0) rotateY(0deg); z-index: 10;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.15), 0 0 15px rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .slider-item.active img { filter: brightness(1) grayscale(0%); }
+
+  .slider-item.prev-1 { transform: translateZ(0) translateX(-360px) rotateY(25deg); z-index: 5; opacity: 0.7; }
+  .slider-item.prev-1 img { filter: brightness(0.6) grayscale(30%); }
+  
+  .slider-item.next-1 { transform: translateZ(0) translateX(360px) rotateY(-25deg); z-index: 5; opacity: 0.7; }
+  .slider-item.next-1 img { filter: brightness(0.6) grayscale(30%); }
+  
+  .slider-item.prev-2 { transform: translateZ(-150px) translateX(-650px) rotateY(40deg); z-index: 3; opacity: 0.3; }
+  .slider-item.next-2 { transform: translateZ(-150px) translateX(650px) rotateY(-40deg); z-index: 3; opacity: 0.3; }
+
+  .slider-item.hidden-prev { transform: translateZ(-300px) translateX(-900px) rotateY(60deg); z-index: 1; opacity: 0; pointer-events: none; }
+  .slider-item.hidden-next { transform: translateZ(-300px) translateX(900px) rotateY(-60deg); z-index: 1; opacity: 0; pointer-events: none; }
+
+  /* Кнопки */
+  .slider-btn {
+    position: absolute; top: 50%; transform: translateY(-50%); width: 60px; height: 60px;
+    background: rgba(255,255,255,0.03); backdrop-filter: blur(5px); border: 1px solid var(--line);
+    border-radius: 50%; z-index: 20; cursor: none; display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease; opacity: 0.6; display: none;
+  }
+  .slider-btn:hover {
+    opacity: 1; background: rgba(255,255,255,0.1); transform: translateY(-50%) scale(1.05);
+    border-color: rgba(255,255,255,0.3); box-shadow: 0 0 15px rgba(255,255,255,0.1);
+  }
+  .slider-btn svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2.5; transition: transform 0.3s ease; }
+  .slider-btn.prev-btn { left: 40px; }
+  .slider-btn.next-btn { right: 40px; }
+  .slider-btn.prev-btn:hover svg { transform: translateX(-3px); }
+  .slider-btn.next-btn:hover svg { transform: translateX(3px); }
+
+  /* ── ABOUT / ИНФО ── */
+  .about {
+    border-top: 1px solid var(--line); padding: 100px 48px; display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center; position: relative; z-index: 10; background: var(--black);
+  }
+  .about-text .section-label { margin-bottom: 16px; }
+  .about-desc { font-size: 15px; color: var(--gray-400); line-height: 1.9; margin-top: 28px; }
+  .about-desc strong { color: var(--gray-200); font-weight: 600; }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 48px; }
+  .stat-box { background: var(--gray-800); padding: 28px 24px; border: 1px solid var(--line); position: relative; overflow: hidden; transition: background 0.3s; }
+  .stat-box:hover { background: var(--gray-700); }
+  .stat-box::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: #fff; transform: scaleY(0); transform-origin: bottom; transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); }
+  .stat-box:hover::before { transform: scaleY(1); }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 2px; display: block; line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--gray-400); font-weight: 500; margin-top: 4px; letter-spacing: 0.5px; }
+
+  .about-features { display: flex; flex-direction: column; gap: 0; }
+  .feature-row { display: flex; align-items: flex-start; gap: 20px; padding: 28px 0; border-bottom: 1px solid var(--line); cursor: default; transition: padding 0.3s; }
+  .feature-row:first-child { border-top: 1px solid var(--line); }
+  .feature-row:hover { padding-left: 8px; }
+  .feature-icon { width: 40px; height: 40px; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; transition: background 0.2s, border-color 0.2s; }
+  .feature-row:hover .feature-icon { background: #fff; border-color: #fff; filter: invert(1); }
+  .feature-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .feature-desc { font-size: 13px; color: var(--gray-400); line-height: 1.6; }
+
+  /* ── CTA SECTION / ЗАКАЗ ── */
+  .cta-section {
+    border-top: 1px solid var(--line); padding: 100px 48px; text-align: center; position: relative;
+    overflow: hidden; background: var(--black); z-index: 10;
+  }
+  .cta-section::before {
+    content: 'AEGSIL'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(120px, 20vw, 260px); letter-spacing: 20px;
+    color: rgba(255,255,255,0.02); white-space: nowrap; pointer-events: none; z-index: 0;
+  }
+  .cta-section > * { position: relative; z-index: 2; }
+  .cta-label { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--gray-400); margin-bottom: 24px; display: block; }
+  .cta-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(50px, 8vw, 100px); letter-spacing: 3px; line-height: 0.95; margin-bottom: 20px; }
+  .cta-title .outline { -webkit-text-stroke: 2px rgba(255,255,255,0.8); color: rgba(255,255,255,0.1); display: block; }
+  .cta-desc { font-size: 15px; color: var(--gray-400); max-width: 440px; margin: 0 auto 48px; line-height: 1.7; }
+  
+  .cta-buttons-wrap { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .btn-cta-big {
+    display: inline-flex; align-items: center; gap: 14px; background: #fff; color: #000;
+    text-decoration: none; font-weight: 800; font-size: 15px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 20px 52px; cursor: none; position: relative; transition: all 0.3s ease;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  }
+  .btn-cta-big:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 rgba(255,255,255,0.12); }
+  .btn-cta-big .tg-icon { width: 22px; height: 22px; transition: transform 0.2s; }
+  .btn-cta-big:hover .tg-icon { transform: rotate(-10deg) scale(1.2); }
+  .btn-cta-alt { background: var(--gray-800); color: #fff; border: 1px solid var(--line); }
+  .btn-cta-alt:hover { background: var(--gray-700); }
+  .cta-note { margin-top: 24px; font-size: 12px; color: var(--gray-400); letter-spacing: 0.5px; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--line); padding: 32px 48px; display: flex; align-items: center;
+    justify-content: space-between; background: var(--gray-900); z-index: 10; position: relative;
+  }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 4px; color: rgba(255,255,255,0.4); }
+  .footer-copy { font-size: 12px; color: var(--gray-400); letter-spacing: 0.5px; text-align: center; }
+  .footer-tg { font-size: 12px; color: var(--gray-400); text-decoration: none; letter-spacing: 0.5px; transition: color 0.2s; }
+  .footer-tg:hover { color: #fff; }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1); }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ── ADAPTIVITY / МОБИЛКИ ── */
+  @media (max-width: 900px) {
+    nav { padding: 18px 20px; } .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 100px 20px 60px; gap: 40px; }
+    .hero-card-stack { max-width: 100%; margin: 0 auto; }
+    
+    /* На телефонах и планшетах отзывы в подвале становятся фоновыми */
+    .cta-section .floating-review {
+      max-width: 200px; font-size: 11px; padding: 12px; opacity: 0.3; background: rgba(17,17,17,0.8);
+    }
+    .cta-section .floating-review:nth-child(1) { top: 15%; left: 2%; }
+    .cta-section .floating-review:nth-child(2) { top: 60%; right: 2%; left: auto; }
+
+    .works { padding: 60px 0; }
+    .works .section-header { padding: 0 20px; flex-direction: column; align-items: flex-start; }
+    
+    .slider-main-container { height: 400px; }
+    .slider-item { width: 300px; }
+    .slider-btn { width: 45px; height: 45px; }
+    .slider-btn.prev-btn { left: 10px; }
+    .slider-btn.next-btn { right: 10px; }
+    .slider-item.prev-1 { transform: translateZ(0) translateX(-200px) rotateY(20deg); opacity: 0.6; }
+    .slider-item.next-1 { transform: translateZ(0) translateX(200px) rotateY(-20deg); opacity: 0.6; }
+    .slider-item.prev-2, .slider-item.next-2 { opacity: 0; pointer-events: none; }
+
+    .about { grid-template-columns: 1fr; padding: 60px 20px; gap: 48px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .cta-section { padding: 80px 20px; }
+    .btn-cta-big { padding: 16px 32px; font-size: 13px; width: 100%; justify-content: center; }
+
+    footer { flex-direction: column; gap: 12px; padding: 28px 20px; text-align: center; }
+    body { cursor: auto; } .cursor, .cursor-ring { display: none; }
+    .nav-cta { padding: 8px 16px; font-size: 12px; }
+  }
+
+  @media (max-width: 520px) {
+    .hero h1 { font-size: 52px; }
+    
+    .cta-section .floating-review { max-width: 160px; font-size: 10px; padding: 10px; opacity: 0.2; }
+    .cta-section .floating-review:nth-child(1) { top: 10%; left: 2%; }
+    .cta-section .floating-review:nth-child(2) { top: 65%; right: 2%; left: auto; }
+
+    .slider-item { width: 250px; }
+    .slider-item.prev-1 { transform: translateZ(0) translateX(-140px) rotateY(15deg); }
+    .slider-item.next-1 { transform: translateZ(0) translateX(140px) rotateY(-15deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="#" class="logo">AEGSIL</a>
+  <ul class="nav-links">
+    <li><a href="#works">Работы</a></li>
+    <li><a href="#about">О дизайнере</a></li>
+    <li><a href="#order">Заказать</a></li>
+  </ul>
+  <a href="https://t.me/aegsil" target="_blank" class="nav-cta">Заказать →</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+
+  <div class="floating-reviews-container">
+    <div class="floating-review">
+      <span class="reviewer">@Playerok_snos</span><span class="stars">★★★★★</span>
+      Взял дизайн у @aegsil, всё отлично, карточка товара получилась очень хорошая и качественная
+    </div>
+    <div class="floating-review">
+      <span class="reviewer">@hedroll_shop</span><span class="stars">★★★★★</span>
+      заказал карточку у @aegsil . сделал ахуено как всегда , советую всем , реально годно очень делает
+    </div>
+    <div class="floating-review">
+      <span class="reviewer">@User_123</span><span class="stars">★★★★★</span>
+      В общем купил у него 26 обложек, получается красиво, в общении приятный делает быстро и недорого
+    </div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-badge">Топовый дизайнер • Playerok</div>
+    <h1>
+      <span class="filled">ЛУЧШИЙ</span>
+      <span class="outline">ДИЗАЙН</span>
+      <span class="filled">КАРТОЧЕК</span>
+    </h1>
+    <p class="hero-sub">
+      <strong>@aegsil</strong> — дизайнер №1 на Playerok и не только.
+      Карточки товаров, которые продают. Скорость, качество, результат.
+    </p>
+    <div class="hero-actions">
+      <a href="https://t.me/aegsil" target="_blank" class="btn-primary">
+        Написать в Telegram
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+      </a>
+      <div class="hero-stat">
+        <strong>1000+</strong>
+        Продаж
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-card-stack">
+      <img class="card-img" src="images/aegsil1.jpg" alt="Work 1">
+      <img class="card-img" src="images/aegsil2.jpg" alt="Work 2">
+    </div>
+  </div>
+</section>
+
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item"><span>Playerok</span><div class="marquee-dot"></div>Дизайн карточек<div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Быстро</span><div class="marquee-dot"></div>Качественно<div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Aegsil</span><div class="marquee-dot"></div>Топовый дизайнер<div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Playerok</span><div class="marquee-dot"></div>Дизайн карточек<div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Быстро</span><div class="marquee-dot"></div>Качественно<div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Aegsil</span><div class="marquee-dot"></div>Топовый дизайнер<div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Playerok</span><div class="marquee-dot"></div>Дизайн карточек<div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Быстро</span><div class="marquee-dot"></div>Качественно<div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Aegsil</span><div class="marquee-dot"></div>Топовый дизайнер<div class="marquee-dot"></div></div>
+  </div>
+</div>
+
+<section class="works" id="works">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-label">Портфолио</div>
+      <div class="section-title">
+        МОИ <span class="dim">РАБОТЫ</span><br>
+        ДЛЯ ВАС
+      </div>
+    </div>
+    <a href="https://t.me/aegsil" target="_blank" class="nav-cta">Заказать →</a>
+  </div>
+
+  <div class="slider-main-container reveal reveal-delay-2">
+    
+    <div class="loading-text" id="loadingText">ЗАГРУЗКА РАБОТ...</div>
+
+    <button class="slider-btn prev-btn" id="prevBtn" aria-label="Предыдущий слайд">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    
+    <div class="slider-track" id="sliderTrack"></div>
+
+    <button class="slider-btn next-btn" id="nextBtn" aria-label="Следующий слайд">
+      <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+
+  </div>
+</section>
+
+<section class="about" id="about">
+  <div class="about-text reveal">
+    <div class="section-label">О дизайнере</div>
+    <div class="section-title">
+      ТОП<br>
+      ДИЗАЙН<br>
+      <span class="dim">PLAYEROK</span>
+    </div>
+    <p class="about-desc">
+      <strong>@aegsil</strong> — дизайнер с профессиональным подходом, специализирующийся на карточках товаров для маркетплейса Playerok.
+      Каждая карточка — это не просто картинка, это <strong>инструмент продаж</strong>.
+      <br><br>
+      Работаю быстро, соблюдаю сроки, делаю так, чтобы ваш товар выделялся среди конкурентов.
+      Более <strong>1000 довольных клиентов</strong> — и ни одного повтора в дизайне.
+    </p>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <span class="stat-num">1000+</span>
+        <div class="stat-label">Продаж</div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">★ 5.0</span>
+        <div class="stat-label">Рейтинг</div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">24H</span>
+        <div class="stat-label">Скорость</div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">∞</span>
+        <div class="stat-label">Уникальность</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-features reveal reveal-delay-2">
+    <div class="feature-row">
+      <div class="feature-icon">•</div>
+      <div>
+        <div class="feature-title">Быстрое выполнение</div>
+        <div class="feature-desc">Карточки готовы в течение 24 часов. Срочные заказы — по договорённости.</div>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">•</div>
+      <div>
+        <div class="feature-title">Продающий дизайн</div>
+        <div class="feature-desc">Дизайн, который привлекает взгляд и увеличивает конверсию ваших объявлений на Playerok.</div>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">•</div>
+      <div>
+        <div class="feature-title">Качество и стиль</div>
+        <div class="feature-desc">Использую как проверенные временем продающие шаблоны, так и уникальные визуальные решения под ваши задачи.</div>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">•</div>
+      <div>
+        <div class="feature-title">Поддержка и правки</div>
+        <div class="feature-desc">Работаю до результата. Правки входят в стоимость — ваше довольство важнее.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section" id="order">
+  
+  <div class="floating-reviews-container">
+    <div class="floating-review">
+      <span class="reviewer">@Playerok_snos</span><span class="stars">★★★★★</span>
+      Взял дизайн у @aegsil, всё отлично, карточка товара получилась очень хорошая и качественная
+    </div>
+    <div class="floating-review">
+      <span class="reviewer">@hedroll_shop</span><span class="stars">★★★★★</span>
+      заказал карточку у @aegsil . сделал ахуено как всегда , советую всем , реально годно очень делает
+    </div>
+  </div>
+
+  <span class="cta-label reveal">Готовы к сотрудничеству?</span>
+  <div class="cta-title reveal">
+    ЗАКАЖИ<br>
+    <span class="outline">ДИЗАЙН</span>
+  </div>
+  <p class="cta-desc reveal reveal-delay-1">
+    Напиши в Telegram — расскажи о проекте, и получи крутую карточку товара уже сегодня.
+  </p>
+  
+  <div class="cta-buttons-wrap reveal reveal-delay-2">
+    <a href="https://t.me/aegsil" target="_blank" class="btn-cta-big">
+      <svg class="tg-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.269c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.952z"/>
+      </svg>
+      Написать @aegsil
+    </a>
+
+    <a href="https://t.me/+FGvTWbQ6fUQ5Yjhi" target="_blank" class="btn-cta-big btn-cta-alt">
+      Отзывы
+    </a>
+  </div>
+
+  <p class="cta-note reveal reveal-delay-3">Быстро · Качественно · Безопасно</p>
+</section>
+
+<footer>
+  <div class="footer-logo">AEGSIL</div>
+  <div class="footer-copy">
+    © 2025 Aegsil Design. Все права защищены.<br>
+    <span style="display: block; margin-top: 6px; font-size: 11px; opacity: 0.6;">
+      Сайт сделал <a href="https://t.me/Playerok_snos" target="_blank" style="color: #fff; text-decoration: none; font-weight: 600;">@Playerok_snos</a>, спасибо!
+    </span>
+  </div>
+  <a href="https://t.me/aegsil" target="_blank" class="footer-tg">@aegsil на Telegram →</a>
+</footer>
+
+<script>
+  // ── КУРСОР ──
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  function attachCursorEvents() {
+    document.querySelectorAll('a, button, .slider-item, .slider-btn, .stat-box, .feature-row').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursor.style.width = '24px'; cursor.style.height = '24px';
+        ring.style.width = '60px'; ring.style.height = '60px';
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.style.width = '12px'; cursor.style.height = '12px';
+        ring.style.width = '40px'; ring.style.height = '40px';
+      });
+    });
+  }
+  attachCursorEvents();
+
+  // ── АВТОМАТИЧЕСКАЯ ЗАГРУЗКА ЛЮБОГО КОЛИЧЕСТВА КАРТИНОК ──
+  const track = document.getElementById('sliderTrack');
+  const loadingText = document.getElementById('loadingText');
+  let items = [];
+  let currentIndex = 0;
+  let imgIndex = 1;
+
+  function loadNextImage() {
+    let img = new Image();
+    img.onload = function() {
+      let div = document.createElement('div');
+      div.className = 'slider-item';
+      let cloneImg = document.createElement('img');
+      cloneImg.src = this.src;
+      cloneImg.alt = `Design ${imgIndex}`;
+      div.appendChild(cloneImg);
+      track.appendChild(div);
+      
+      imgIndex++;
+      loadNextImage();
+    };
+    img.onerror = function() {
+      loadingText.style.opacity = '0';
+      setTimeout(() => loadingText.style.display = 'none', 500);
+      
+      items = Array.from(track.getElementsByClassName('slider-item'));
+      if (items.length > 0) {
+        document.getElementById('prevBtn').style.display = 'flex';
+        document.getElementById('nextBtn').style.display = 'flex';
+        currentIndex = Math.floor(items.length / 2);
+        initSliderEvents();
+        updateSlider();
+        attachCursorEvents();
+      } else {
+        loadingText.innerHTML = "НЕТ КАРТИНОК В ПАПКЕ IMAGES";
+      }
+    };
+    img.src = `images/aegsil${imgIndex}.jpg`;
+  }
+
+  loadNextImage();
+
+  // ── ИДЕАЛЬНАЯ КРУГОВАЯ ЛОГИКА СЛАЙДЕРА ──
+  function updateSlider() {
+    const total = items.length;
+    if(total === 0) return;
+
+    items.forEach((item, index) => {
+      item.className = 'slider-item'; 
+      
+      let distance = index - currentIndex;
+      if (distance > Math.floor(total / 2)) distance -= total;
+      if (distance < -Math.floor(total / 2)) distance += total;
+
+      if (distance === 0) {
+        item.classList.add('active');
+      } else if (distance === -1) {
+        item.classList.add('prev-1');
+      } else if (distance === 1) {
+        item.classList.add('next-1');
+      } else if (distance === -2) {
+        item.classList.add('prev-2');
+      } else if (distance === 2) {
+        item.classList.add('next-2');
+      } else if (distance < -2) {
+        item.classList.add('hidden-prev');
+      } else if (distance > 2) {
+        item.classList.add('hidden-next');
+      }
+    });
+  }
+
+  function nextSlide() {
+    currentIndex = (currentIndex + 1) % items.length;
+    updateSlider();
+  }
+  function prevSlide() {
+    currentIndex = (currentIndex - 1 + items.length) % items.length;
+    updateSlider();
+  }
+
+  function initSliderEvents() {
+    document.getElementById('nextBtn').addEventListener('click', nextSlide);
+    document.getElementById('prevBtn').addEventListener('click', prevSlide);
+
+    items.forEach((item, index) => {
+      item.addEventListener('click', () => {
+          if(index !== currentIndex) {
+              currentIndex = index;
+              updateSlider();
+          }
+      });
+    });
+
+    let startX = 0;
+    track.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+    }, {passive: true});
+    
+    track.addEventListener('touchend', e => {
+      let endX = e.changedTouches[0].clientX;
+      if (startX - endX > 40) {
+        nextSlide();
+      } else if (endX - startX > 40) {
+        prevSlide();
+      }
+    }, {passive: true});
+  }
+
+  // ── SCROLL REVEAL ──
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+
+  // ── PARALLAX ──
+  document.addEventListener('mousemove', e => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 14;
+    const y = (e.clientY / window.innerHeight - 0.5) * 10;
+    const stack = document.querySelector('.hero-card-stack');
+    if (stack && window.innerWidth > 900) {
+        stack.style.transform = `perspective(800px) rotateY(${x * 0.4}deg) rotateX(${-y * 0.3}deg)`;
+    }
+  });
+</script>
+</body>
+</html>
