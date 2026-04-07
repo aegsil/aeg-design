@@ -208,15 +208,14 @@
     position: absolute; width: 420px; aspect-ratio: 4/3;
     transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease, filter 0.8s ease, box-shadow 0.8s ease;
     cursor: pointer; border-radius: 8px; border: 1px solid var(--line); transform-origin: center center;
-    opacity: 0; /* Невидимые при загрузке */
-    pointer-events: none; /* Нельзя кликнуть при загрузке */
+    opacity: 0; pointer-events: none;
   }
   .slider-item img {
     width: 100%; height: 100%; object-fit: cover; border-radius: 8px; transition: filter 0.8s ease;
     pointer-events: none;
   }
 
-  /* Позиции слайдов (становятся видимыми, когда скрипт всё посчитает) */
+  /* Позиции слайдов */
   .slider-item.active {
     transform: translateZ(200px) translateX(0) rotateY(0deg); z-index: 10;
     box-shadow: 0 0 50px rgba(255, 255, 255, 0.15), 0 0 15px rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.3);
@@ -233,7 +232,6 @@
   .slider-item.prev-2 { transform: translateZ(-150px) translateX(-650px) rotateY(40deg); z-index: 3; opacity: 0.3; pointer-events: auto; }
   .slider-item.next-2 { transform: translateZ(-150px) translateX(650px) rotateY(-40deg); z-index: 3; opacity: 0.3; pointer-events: auto; }
 
-  /* Картинки "на задворках" */
   .slider-item.hidden-prev { transform: translateZ(-300px) translateX(-900px) rotateY(60deg); z-index: 1; opacity: 0; pointer-events: none; }
   .slider-item.hidden-next { transform: translateZ(-300px) translateX(900px) rotateY(-60deg); z-index: 1; opacity: 0; pointer-events: none; }
 
@@ -341,7 +339,7 @@
     .slider-btn { width: 45px; height: 45px; }
     .slider-btn.prev-btn { left: 10px; }
     .slider-btn.next-btn { right: 10px; }
-    /* Для мобилок также возвращаем pointer-events: auto активным карточкам */
+    /* Для мобилок возвращаем pointer-events: auto активным карточкам */
     .slider-item.prev-1 { transform: translateZ(0) translateX(-200px) rotateY(20deg); opacity: 0.6; pointer-events: auto; }
     .slider-item.next-1 { transform: translateZ(0) translateX(200px) rotateY(-20deg); opacity: 0.6; pointer-events: auto; }
     .slider-item.prev-2, .slider-item.next-2 { opacity: 0; pointer-events: none; }
@@ -594,28 +592,47 @@
   }
   attachCursorEvents();
 
-  // ── АВТОМАТИЧЕСКАЯ ЗАГРУЗКА ЛЮБОГО КОЛИЧЕСТВА КАРТИНОК ──
+  // ── МАГИЯ: МГНОВЕННАЯ ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА ──
   const track = document.getElementById('sliderTrack');
   const loadingText = document.getElementById('loadingText');
   let items = [];
   let currentIndex = 0;
-  let imgIndex = 1;
+  
+  // Сайт мгновенно проверяет наличие до 60 картинок одновременно
+  const MAX_IMAGES_TO_CHECK = 60; 
+  let checkedCount = 0;
+  let validImages = [];
 
-  function loadNextImage() {
+  for (let i = 1; i <= MAX_IMAGES_TO_CHECK; i++) {
     let img = new Image();
     img.onload = function() {
-      let div = document.createElement('div');
-      div.className = 'slider-item';
-      let cloneImg = document.createElement('img');
-      cloneImg.src = this.src;
-      cloneImg.alt = `Design ${imgIndex}`;
-      div.appendChild(cloneImg);
-      track.appendChild(div);
-      
-      imgIndex++;
-      loadNextImage();
+      validImages.push({ id: i, src: this.src });
+      finalizeCheck();
     };
     img.onerror = function() {
+      finalizeCheck();
+    };
+    img.src = `images/aegsil${i}.jpg`;
+  }
+
+  function finalizeCheck() {
+    checkedCount++;
+    // Когда проверили все 60 ссылок (и успешные, и несуществующие)
+    if (checkedCount === MAX_IMAGES_TO_CHECK) {
+      
+      // Сортируем картинки по порядку (1, 2, 3...), так как загрузиться они могли вразнобой
+      validImages.sort((a, b) => a.id - b.id);
+      
+      validImages.forEach(imgData => {
+        let div = document.createElement('div');
+        div.className = 'slider-item';
+        let cloneImg = document.createElement('img');
+        cloneImg.src = imgData.src;
+        cloneImg.alt = `Design ${imgData.id}`;
+        div.appendChild(cloneImg);
+        track.appendChild(div);
+      });
+
       loadingText.style.opacity = '0';
       setTimeout(() => loadingText.style.display = 'none', 500);
       
@@ -630,11 +647,8 @@
       } else {
         loadingText.innerHTML = "НЕТ КАРТИНОК В ПАПКЕ IMAGES";
       }
-    };
-    img.src = `images/aegsil${imgIndex}.jpg`;
+    }
   }
-
-  loadNextImage();
 
   // ── ИДЕАЛЬНАЯ КРУГОВАЯ ЛОГИКА СЛАЙДЕРА ──
   function updateSlider() {
