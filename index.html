@@ -203,32 +203,37 @@
     display: flex; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; perspective: 1200px;
   }
 
+  /* БАЗОВЫЕ КАРТОЧКИ: ПОЛНОСТЬЮ СКРЫТЫ, ПОКА НЕ ПРОГРУЗЯТСЯ */
   .slider-item {
     position: absolute; width: 420px; aspect-ratio: 4/3;
     transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease, filter 0.8s ease, box-shadow 0.8s ease;
     cursor: pointer; border-radius: 8px; border: 1px solid var(--line); transform-origin: center center;
+    opacity: 0; /* Невидимые при загрузке */
+    pointer-events: none; /* Нельзя кликнуть при загрузке */
   }
   .slider-item img {
     width: 100%; height: 100%; object-fit: cover; border-radius: 8px; transition: filter 0.8s ease;
     pointer-events: none;
   }
 
-  /* Позиции слайдов */
+  /* Позиции слайдов (становятся видимыми, когда скрипт всё посчитает) */
   .slider-item.active {
     transform: translateZ(200px) translateX(0) rotateY(0deg); z-index: 10;
     box-shadow: 0 0 50px rgba(255, 255, 255, 0.15), 0 0 15px rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.3);
+    opacity: 1; pointer-events: auto;
   }
   .slider-item.active img { filter: brightness(1) grayscale(0%); }
 
-  .slider-item.prev-1 { transform: translateZ(0) translateX(-360px) rotateY(25deg); z-index: 5; opacity: 0.7; }
+  .slider-item.prev-1 { transform: translateZ(0) translateX(-360px) rotateY(25deg); z-index: 5; opacity: 0.7; pointer-events: auto; }
   .slider-item.prev-1 img { filter: brightness(0.6) grayscale(30%); }
   
-  .slider-item.next-1 { transform: translateZ(0) translateX(360px) rotateY(-25deg); z-index: 5; opacity: 0.7; }
+  .slider-item.next-1 { transform: translateZ(0) translateX(360px) rotateY(-25deg); z-index: 5; opacity: 0.7; pointer-events: auto; }
   .slider-item.next-1 img { filter: brightness(0.6) grayscale(30%); }
   
-  .slider-item.prev-2 { transform: translateZ(-150px) translateX(-650px) rotateY(40deg); z-index: 3; opacity: 0.3; }
-  .slider-item.next-2 { transform: translateZ(-150px) translateX(650px) rotateY(-40deg); z-index: 3; opacity: 0.3; }
+  .slider-item.prev-2 { transform: translateZ(-150px) translateX(-650px) rotateY(40deg); z-index: 3; opacity: 0.3; pointer-events: auto; }
+  .slider-item.next-2 { transform: translateZ(-150px) translateX(650px) rotateY(-40deg); z-index: 3; opacity: 0.3; pointer-events: auto; }
 
+  /* Картинки "на задворках" */
   .slider-item.hidden-prev { transform: translateZ(-300px) translateX(-900px) rotateY(60deg); z-index: 1; opacity: 0; pointer-events: none; }
   .slider-item.hidden-next { transform: translateZ(-300px) translateX(900px) rotateY(-60deg); z-index: 1; opacity: 0; pointer-events: none; }
 
@@ -336,8 +341,9 @@
     .slider-btn { width: 45px; height: 45px; }
     .slider-btn.prev-btn { left: 10px; }
     .slider-btn.next-btn { right: 10px; }
-    .slider-item.prev-1 { transform: translateZ(0) translateX(-200px) rotateY(20deg); opacity: 0.6; }
-    .slider-item.next-1 { transform: translateZ(0) translateX(200px) rotateY(-20deg); opacity: 0.6; }
+    /* Для мобилок также возвращаем pointer-events: auto активным карточкам */
+    .slider-item.prev-1 { transform: translateZ(0) translateX(-200px) rotateY(20deg); opacity: 0.6; pointer-events: auto; }
+    .slider-item.next-1 { transform: translateZ(0) translateX(200px) rotateY(-20deg); opacity: 0.6; pointer-events: auto; }
     .slider-item.prev-2, .slider-item.next-2 { opacity: 0; pointer-events: none; }
 
     .about { grid-template-columns: 1fr; padding: 60px 20px; gap: 48px; }
