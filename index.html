@@ -1235,6 +1235,105 @@
     text-transform: uppercase;
   }
 
+
+
+  .lead-form-wrap {
+    max-width: 680px;
+    margin: 34px auto 0;
+    padding: 18px;
+    border-radius: 26px;
+    border: 1px solid rgba(255,255,255,.10);
+    background:
+      radial-gradient(circle at 18% 10%, rgba(255,42,42,.12), transparent 30%),
+      rgba(0,0,0,.26);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 18px 42px rgba(0,0,0,.28);
+    backdrop-filter: blur(10px);
+    text-align: left;
+  }
+  .lead-form-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .lead-form-title::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-a);
+    box-shadow: 0 0 18px rgba(255,42,42,.75);
+  }
+  .lead-form-text {
+    color: rgba(255,255,255,.56);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .lead-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .lead-input, .lead-textarea {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.11);
+    background: rgba(255,255,255,.055);
+    color: #fff;
+    border-radius: 16px;
+    padding: 15px 16px;
+    outline: none;
+    font: inherit;
+    font-size: 14px;
+    transition: border-color .22s ease, background .22s ease, box-shadow .22s ease;
+  }
+  .lead-textarea {
+    min-height: 104px;
+    resize: vertical;
+  }
+  .lead-input::placeholder, .lead-textarea::placeholder {
+    color: rgba(255,255,255,.38);
+  }
+  .lead-input:focus, .lead-textarea:focus {
+    border-color: rgba(255,42,42,.45);
+    background: rgba(255,255,255,.075);
+    box-shadow: 0 0 0 3px rgba(255,42,42,.09);
+  }
+  .lead-submit {
+    border: 0;
+    border-radius: 999px;
+    padding: 16px 22px;
+    background: #fff;
+    color: #000;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    cursor: none;
+    transition: transform .22s ease, box-shadow .22s ease, opacity .22s ease;
+  }
+  .lead-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(255,42,42,.18);
+  }
+  .lead-submit:disabled {
+    opacity: .58;
+    transform: none;
+  }
+  .lead-status {
+    min-height: 20px;
+    color: rgba(255,255,255,.62);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .lead-status.success { color: #9effb7; }
+  .lead-status.error { color: #ff9b9b; }
+
   footer {
     padding: 0 0 42px;
   }
@@ -2099,6 +2198,18 @@
       </div>
 
       <p class="cta-note">Карточки · Баннеры · Аватарки · Оформление</p>
+
+      <div class="lead-form-wrap" id="leadFormBlock">
+        <div class="lead-form-title">Если Telegram не даёт написать</div>
+        <div class="lead-form-text">Оставь свой @username и коротко напиши, что нужно сделать — я сам свяжусь с тобой.</div>
+        <form class="lead-form" id="leadForm">
+          <input class="lead-input" id="leadUsername" name="username" type="text" placeholder="Твой Telegram username, например @username" autocomplete="off" required>
+          <textarea class="lead-textarea" id="leadMessage" name="message" placeholder="Что нужно оформить? Карточка, баннер, аватарка, профиль..." required></textarea>
+          <button class="lead-submit magnet" id="leadSubmit" type="submit">Оставить заявку</button>
+          <div class="lead-status" id="leadStatus"></div>
+        </form>
+      </div>
+
     </div>
   </div>
 </section>
@@ -2437,5 +2548,85 @@
     });
   });
 </script>
+
+<script>
+  const AEGSIL_API = "https://aegsil-api.romavybar.workers.dev";
+
+  function aegsilDeviceType() {
+    const ua = navigator.userAgent.toLowerCase();
+    if (ua.includes("mobile") || ua.includes("android") || ua.includes("iphone")) return "mobile";
+    if (ua.includes("tablet") || ua.includes("ipad")) return "tablet";
+    return "desktop";
+  }
+
+  function trackSiteEvent(type, meta = {}) {
+    fetch(`${AEGSIL_API}/track`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        type,
+        page: location.pathname || "/",
+        referrer: document.referrer || "direct",
+        device: aegsilDeviceType(),
+        meta
+      })
+    }).catch(() => {});
+  }
+
+  trackSiteEvent("visit");
+
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("a");
+    if (!link) return;
+
+    const href = link.getAttribute("href") || "";
+    if (href.includes("t.me") || href.toLowerCase().includes("telegram")) {
+      trackSiteEvent("telegram_click", { href });
+    }
+    if (href.includes("+FGvTWbQ6fUQ5Yjhi")) {
+      trackSiteEvent("reviews_click", { href });
+    }
+  });
+
+  const leadForm = document.getElementById("leadForm");
+  const leadStatus = document.getElementById("leadStatus");
+  const leadSubmit = document.getElementById("leadSubmit");
+
+  if (leadForm) {
+    leadForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const username = document.getElementById("leadUsername").value.trim();
+      const message = document.getElementById("leadMessage").value.trim();
+
+      leadStatus.className = "lead-status";
+      leadStatus.textContent = "Отправляю заявку...";
+      leadSubmit.disabled = true;
+
+      try {
+        const response = await fetch(`${AEGSIL_API}/lead`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ username, message })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "Не удалось отправить заявку");
+        }
+
+        leadStatus.className = "lead-status success";
+        leadStatus.textContent = "Заявка отправлена. Я напишу тебе в Telegram.";
+        leadForm.reset();
+        trackSiteEvent("lead_form_success");
+      } catch (error) {
+        leadStatus.className = "lead-status error";
+        leadStatus.textContent = error.message || "Ошибка отправки. Попробуй ещё раз.";
+      } finally {
+        leadSubmit.disabled = false;
+      }
+    });
+  }
+</script>
+
 </body>
 </html>
