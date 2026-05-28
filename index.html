@@ -2210,10 +2210,10 @@
       <p class="cta-note">Карточки · Баннеры · Аватарки · Оформление</p>
 
       <div class="lead-form-wrap" id="leadFormBlock">
-        <div class="lead-form-title">Если Telegram не даёт написать</div>
-        <div class="lead-form-text">Оставь свой @username и коротко напиши, что нужно сделать — я сам свяжусь с тобой.</div>
+        <div class="lead-form-title">Подтверждённая заявка через Telegram</div>
+        <div class="lead-form-text">Напиши, что нужно сделать. После отправки откроется бот — нажми Start, и заявка подтвердится твоим настоящим Telegram.</div>
         <form class="lead-form" id="leadForm" novalidate>
-          <input class="lead-input" id="leadUsername" name="username" type="text" placeholder="Твой Telegram username, например @username" autocomplete="off" maxlength="40" required>
+          <input class="lead-input" id="leadUsername" name="username" type="text" placeholder="Telegram username, можно не заполнять" autocomplete="off" maxlength="40">
           <textarea class="lead-textarea" id="leadMessage" name="message" placeholder="Что нужно оформить? Карточка, баннер, аватарка, профиль..." maxlength="900" required></textarea>
 
           <!-- Антиспам-ловушка: обычный человек это поле не видит, а боты часто заполняют -->
@@ -2222,7 +2222,7 @@
             <input id="leadWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
           </div>
 
-          <button class="lead-submit magnet" id="leadSubmit" type="submit">Оставить заявку</button>
+          <button class="lead-submit magnet" id="leadSubmit" type="submit">Подтвердить через Telegram</button>
           <div class="lead-status" id="leadStatus"></div>
         </form>
       </div>
@@ -2610,15 +2610,22 @@
   const leadSubmit = document.getElementById("leadSubmit");
   const leadStartedAt = Date.now();
 
-  const LEAD_COOLDOWN_MS = 2 * 60 * 1000; // 1 заявка раз в 2 минуты с одного браузера
-  const LEAD_MIN_FILL_TIME_MS = 4500; // слишком быстрая отправка почти всегда бот
+  const LEAD_COOLDOWN_MS = 2 * 60 * 1000;
+  const LEAD_MIN_FILL_TIME_MS = 3000;
   const LEAD_STORAGE_KEY = "aegsil_lead_cooldown_until";
   const LEAD_LAST_KEY = "aegsil_last_lead_signature";
-  const LEAD_DUPLICATE_MS = 10 * 60 * 1000; // одинаковую заявку не даём слать 10 минут
+  const LEAD_DUPLICATE_MS = 10 * 60 * 1000;
 
   function setLeadStatus(type, text) {
+    if (!leadStatus) return;
     leadStatus.className = type ? `lead-status ${type}` : "lead-status";
     leadStatus.textContent = text || "";
+  }
+
+  function setLeadStatusHtml(type, html) {
+    if (!leadStatus) return;
+    leadStatus.className = type ? `lead-status ${type}` : "lead-status";
+    leadStatus.innerHTML = html || "";
   }
 
   function getCooldownLeftMs() {
@@ -2635,18 +2642,18 @@
   }
 
   function updateLeadCooldownUi() {
-    if (!leadForm) return;
+    if (!leadForm || !leadSubmit) return;
     const left = getCooldownLeftMs();
 
     if (left > 0) {
       leadSubmit.disabled = true;
-      setLeadStatus("", `Заявка уже отправлялась. Следующую можно через ${formatCooldown(left)}`);
+      setLeadStatus("", `Заявка уже создавалась. Повторно можно через ${formatCooldown(left)}`);
       setTimeout(updateLeadCooldownUi, 1000);
       return;
     }
 
     leadSubmit.disabled = false;
-    if (leadStatus.textContent.includes("Следующую можно")) {
+    if (leadStatus && leadStatus.textContent.includes("Повторно можно")) {
       setLeadStatus("", "");
     }
   }
@@ -2659,7 +2666,7 @@
   }
 
   async function getLeadSignature(username, message) {
-    return sha256(`${username.toLowerCase()}|${message.toLowerCase()}`);
+    return sha256(`${(username || "no_username").toLowerCase()}|${message.toLowerCase()}`);
   }
 
   function wasDuplicateLead(signature) {
@@ -2672,13 +2679,15 @@
   }
 
   function validateLead(username, message) {
-    if (!username || !message) return "Заполни username и описание заявки.";
-    if (username.length > 40) return "Username слишком длинный.";
+    if (!message) return "Напиши, что нужно сделать.";
     if (message.length < 8) return "Напиши чуть подробнее, что нужно сделать.";
     if (message.length > 900) return "Сообщение слишком длинное. Сократи до 900 символов.";
 
-    const usernameOk = /^@?[a-zA-Z0-9_]{4,32}$/.test(username) || /^https?:\/\/t\.me\/[a-zA-Z0-9_]{4,32}$/i.test(username);
-    if (!usernameOk) return "Укажи Telegram username в формате @username.";
+    if (username) {
+      if (username.length > 40) return "Username слишком длинный.";
+      const usernameOk = /^@?[a-zA-Z0-9_]{4,32}$/.test(username) || /^https?:\/\/t\.me\/[a-zA-Z0-9_]{4,32}$/i.test(username);
+      if (!usernameOk) return "Username можно не заполнять, либо укажи в формате @username.";
+    }
 
     return "";
   }
@@ -2689,8 +2698,8 @@
     leadForm.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const username = document.getElementById("leadUsername").value.trim();
-      const message = document.getElementById("leadMessage").value.trim();
+      const username = document.getElementById("leadUsername")?.value.trim() || "";
+      const message = document.getElementById("leadMessage")?.value.trim() || "";
       const website = document.getElementById("leadWebsite")?.value.trim() || "";
 
       setLeadStatus("", "");
@@ -2698,14 +2707,14 @@
 
       const cooldownLeft = getCooldownLeftMs();
       if (cooldownLeft > 0) {
-        setLeadStatus("error", `Не спамь заявками. Следующую можно через ${formatCooldown(cooldownLeft)}`);
+        setLeadStatus("error", `Не спамь заявками. Повторно можно через ${formatCooldown(cooldownLeft)}`);
         updateLeadCooldownUi();
         return;
       }
 
       if (website) {
         localStorage.setItem(LEAD_STORAGE_KEY, String(Date.now() + LEAD_COOLDOWN_MS));
-        setLeadStatus("success", "Заявка отправлена. Я напишу тебе в Telegram.");
+        setLeadStatus("success", "Заявка создана. Подтверди её в Telegram.");
         updateLeadCooldownUi();
         return;
       }
@@ -2726,12 +2735,12 @@
       const leadSignature = await getLeadSignature(username, message);
       if (wasDuplicateLead(leadSignature)) {
         localStorage.setItem(LEAD_STORAGE_KEY, String(Date.now() + LEAD_COOLDOWN_MS));
-        setLeadStatus("error", "Такая заявка уже отправлялась. Не нужно дублировать.");
+        setLeadStatus("error", "Такая заявка уже создавалась. Подтверди её в Telegram или попробуй позже.");
         updateLeadCooldownUi();
         return;
       }
 
-      setLeadStatus("", "Отправляю заявку...");
+      setLeadStatus("", "Создаю заявку. Сейчас откроется Telegram для подтверждения...");
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -2746,8 +2755,10 @@
             message,
             website,
             page: location.pathname || "/",
+            url: location.href,
             referrer: document.referrer || "direct",
             device: aegsilDeviceType(),
+            form_started_at: leadStartedAt,
             formTimeMs: Date.now() - leadStartedAt
           })
         });
@@ -2757,15 +2768,26 @@
           if (response.status === 429) {
             throw new Error(data.error || "Слишком много заявок. Попробуй позже.");
           }
-          throw new Error(data.error || "Не удалось отправить заявку");
+          throw new Error(data.error || "Не удалось создать заявку");
+        }
+
+        if (!data.confirm_url) {
+          throw new Error("Не пришла ссылка подтверждения Telegram");
         }
 
         saveLeadSignature(leadSignature);
         localStorage.setItem(LEAD_STORAGE_KEY, String(Date.now() + LEAD_COOLDOWN_MS));
-        setLeadStatus("success", "Заявка отправлена. Я напишу тебе в Telegram.");
-        leadForm.reset();
-        trackSiteEvent("lead_form_success");
-        updateLeadCooldownUi();
+
+        setLeadStatusHtml(
+          "success",
+          `Заявка создана. Подтверди её в Telegram: <a href="${data.confirm_url}" target="_blank" rel="noopener">открыть бота</a>`
+        );
+
+        trackSiteEvent("lead_confirm_open", { confirm: "telegram" });
+
+        setTimeout(() => {
+          window.location.href = data.confirm_url;
+        }, 500);
       } catch (error) {
         setLeadStatus("error", error.name === "AbortError" ? "Сервер долго не отвечает. Попробуй ещё раз." : (error.message || "Ошибка отправки. Попробуй ещё раз."));
         leadSubmit.disabled = false;
