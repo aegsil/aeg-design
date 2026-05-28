@@ -2395,8 +2395,7 @@
   let currentIndex = 0;
   let heroImageCycle = 0;
   const MAX_IMAGES_TO_CHECK = 60;
-  let checkedCount = 0;
-  const validImages = [];
+  const PORTFOLIO_API_URL = "https://aegsil-api.romavybar.workers.dev/portfolio";
 
   function setupHeroCards(images) {
     const heroImages = Array.from(document.querySelectorAll('.sheet img'));
@@ -2439,48 +2438,114 @@
     }, 5000);
   }
 
-  for (let i = 1; i <= MAX_IMAGES_TO_CHECK; i++) {
-    const img = new Image();
-    img.onload = function() {
-      validImages.push({ id: i, src: this.src });
-      finalizeCheck();
-    };
-    img.onerror = finalizeCheck;
-    img.src = `images/aegsil${i}.jpg`;
+  function loadLocalPortfolioImages() {
+    return new Promise((resolve) => {
+      const localImages = [];
+      let checkedCount = 0;
+
+      function done() {
+        checkedCount++;
+        if (checkedCount === MAX_IMAGES_TO_CHECK) {
+          localImages.sort((a, b) => a.id - b.id);
+          resolve(localImages);
+        }
+      }
+
+      for (let i = 1; i <= MAX_IMAGES_TO_CHECK; i++) {
+        const img = new Image();
+
+        img.onload = function() {
+          localImages.push({
+            id: i,
+            src: this.src,
+            alt: `Design ${i}`,
+            source: "local"
+          });
+          done();
+        };
+
+        img.onerror = done;
+        img.src = `images/aegsil${i}.jpg`;
+      }
+    });
   }
 
-  function finalizeCheck() {
-    checkedCount++;
-    if (checkedCount === MAX_IMAGES_TO_CHECK) {
-      validImages.sort((a, b) => a.id - b.id);
-      setupHeroCards(validImages);
-      validImages.forEach(imgData => {
-        const div = document.createElement('div');
-        div.className = 'slider-item';
-        const image = document.createElement('img');
-        image.src = imgData.src;
-        image.alt = `Design ${imgData.id}`;
-        div.appendChild(image);
-        track.appendChild(div);
+  async function loadBotPortfolioImages() {
+    try {
+      const response = await fetch(`${PORTFOLIO_API_URL}?limit=80&v=${Date.now()}`, {
+        cache: "no-store"
       });
 
-      items = Array.from(document.querySelectorAll('.slider-item'));
-      loadingText.style.opacity = '0';
-      setTimeout(() => {
-        if (items.length === 0) {
-          loadingText.style.opacity = '1';
-          loadingText.textContent = 'Нет картинок в папке images';
-        } else {
-          loadingText.style.display = 'none';
-          prevBtn.style.display = 'flex';
-          nextBtn.style.display = 'flex';
-          currentIndex = Math.floor(items.length / 2);
-          initSliderEvents();
-          updateSlider();
-        }
-      }, 400);
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      if (!data.ok || !Array.isArray(data.images)) return [];
+
+      return data.images
+        .filter((item) => item && item.url)
+        .map((item, index) => ({
+          id: 100000 + index,
+          src: item.url,
+          alt: item.caption || `Telegram work ${index + 1}`,
+          caption: item.caption || "",
+          source: "bot"
+        }));
+    } catch (error) {
+      console.warn("Не смог загрузить работы из бота:", error);
+      return [];
     }
   }
+
+  function renderPortfolioSlider(images) {
+    track.innerHTML = "";
+    setupHeroCards(images);
+
+    images.forEach((imgData) => {
+      const div = document.createElement("div");
+      div.className = "slider-item";
+
+      const image = document.createElement("img");
+      image.src = imgData.src;
+      image.alt = imgData.alt || "AEGSIL work";
+      image.loading = "lazy";
+
+      div.appendChild(image);
+      track.appendChild(div);
+    });
+
+    items = Array.from(document.querySelectorAll(".slider-item"));
+    loadingText.style.opacity = "0";
+
+    setTimeout(() => {
+      if (items.length === 0) {
+        loadingText.style.opacity = "1";
+        loadingText.textContent = "Нет работ для показа";
+      } else {
+        loadingText.style.display = "none";
+        prevBtn.style.display = "flex";
+        nextBtn.style.display = "flex";
+        currentIndex = Math.floor(items.length / 2);
+        initSliderEvents();
+        updateSlider();
+      }
+    }, 400);
+  }
+
+  async function initPortfolioImages() {
+    if (loadingText) loadingText.textContent = "Загружаю работы...";
+
+    const [botImages, localImages] = await Promise.all([
+      loadBotPortfolioImages(),
+      loadLocalPortfolioImages()
+    ]);
+
+    const allImages = [...botImages, ...localImages];
+
+    renderPortfolioSlider(allImages);
+  }
+
+  initPortfolioImages();
+
 
   function updateSlider() {
     const total = items.length;
