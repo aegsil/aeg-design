@@ -1237,6 +1237,129 @@
 
 
 
+
+
+  .spam-guard-card {
+    position: relative;
+    max-width: 680px;
+    margin: 32px auto 0;
+    padding: 18px;
+    border-radius: 26px;
+    border: 1px solid rgba(255,42,42,.22);
+    background:
+      radial-gradient(circle at 14% 18%, rgba(255,42,42,.22), transparent 34%),
+      radial-gradient(circle at 86% 90%, rgba(122,0,0,.20), transparent 36%),
+      linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 18px 44px rgba(0,0,0,.34), 0 0 46px rgba(255,42,42,.08);
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    text-align: left;
+  }
+  .spam-guard-card::before {
+    content: "";
+    position: absolute;
+    left: -18%;
+    top: -120%;
+    width: 34%;
+    height: 260%;
+    background: linear-gradient(110deg, transparent, rgba(255,255,255,.16), transparent);
+    transform: rotate(18deg);
+    animation: spamGuardShine 5.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .spam-guard-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .spam-guard-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-size: 15px;
+    line-height: 1.18;
+    font-weight: 950;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .spam-guard-title::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent-a);
+    box-shadow: 0 0 18px rgba(255,42,42,.9), 0 0 34px rgba(255,42,42,.45);
+    flex: 0 0 auto;
+  }
+  .spam-guard-status {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 7px 11px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    color: rgba(255,255,255,.72);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .spam-guard-text {
+    position: relative;
+    z-index: 2;
+    color: rgba(255,255,255,.66);
+    font-size: 13px;
+    line-height: 1.68;
+    margin-bottom: 14px;
+  }
+  .spam-guard-text strong {
+    color: #fff;
+    font-weight: 900;
+  }
+  .spam-guard-list {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .spam-guard-chip {
+    min-height: 82px;
+    border-radius: 17px;
+    padding: 14px 14px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.28);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .spam-guard-chip b {
+    display: block;
+    margin-bottom: 7px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .045em;
+  }
+  .spam-guard-chip span {
+    display: block;
+    color: rgba(255,255,255,.54);
+    font-size: 11px;
+    line-height: 1.48;
+    font-weight: 650;
+  }
+  .spam-guard-card + .lead-form-wrap {
+    margin-top: 14px;
+  }
+  @keyframes spamGuardShine {
+    0%, 72%, 100% { transform: translateX(0) rotate(18deg); opacity: 0; }
+    18% { opacity: .75; }
+    42% { transform: translateX(360%) rotate(18deg); opacity: 0; }
+  }
+
   .lead-form-wrap {
     max-width: 680px;
     margin: 34px auto 0;
@@ -1946,6 +2069,9 @@
     .about-card, .feature-card, .cta-shell { padding: 24px 18px; }
     .stats-grid, .service-proof-row { grid-template-columns: 1fr 1fr; }
     .btn-cta-big { width: 100%; min-width: 0; }
+    .spam-guard-list { grid-template-columns: 1fr; }
+    .spam-guard-head { align-items: flex-start; flex-direction: column; }
+    .spam-guard-card, .lead-form-wrap { max-width: 100%; }
     .footer-shell { flex-direction: column; text-align: center; }
   }
 
@@ -2309,12 +2435,37 @@
 
       <p class="cta-note">Карточки · Баннеры · Аватарки · Оформление</p>
 
+      <div class="spam-guard-card reveal reveal-delay-1" aria-label="Заявка через Telegram-бота">
+        <div class="spam-guard-head">
+          <div class="spam-guard-title">Связь без спам-блока</div>
+          <div class="spam-guard-status">Через Telegram-бота</div>
+        </div>
+        <div class="spam-guard-text">
+          Если Telegram не даёт написать продавцу напрямую — оставь заявку здесь. После отправки откроется бот:
+          нажми <strong>Start</strong>, и я получу подтверждённую заявку с твоим Telegram. Отвечу в течение 24 часов.
+        </div>
+        <div class="spam-guard-list">
+          <div class="spam-guard-chip">
+            <b>1. Опиши заказ</b>
+            <span>карточка, баннер, аватарка, профиль или другое оформление</span>
+          </div>
+          <div class="spam-guard-chip">
+            <b>2. Нажми Start</b>
+            <span>бот подтвердит, что заявка отправлена с настоящего Telegram</span>
+          </div>
+          <div class="spam-guard-chip">
+            <b>3. Жди ответ</b>
+            <span>я свяжусь с тобой и уточню детали заказа до 24 часов</span>
+          </div>
+        </div>
+      </div>
+
       <div class="lead-form-wrap" id="leadFormBlock">
-        <div class="lead-form-title">Подтверждённая заявка через Telegram</div>
-        <div class="lead-form-text">Напиши, что нужно сделать. После отправки откроется бот — нажми Start, и заявка подтвердится твоим настоящим Telegram.</div>
+        <div class="lead-form-title">Оставить заявку на дизайн</div>
+        <div class="lead-form-text">Напиши задачу ниже. Кнопка отправит заявку и откроет Telegram-бота для подтверждения.</div>
         <form class="lead-form" id="leadForm" novalidate>
-          <input class="lead-input" id="leadUsername" name="username" type="text" placeholder="Telegram username, можно не заполнять" autocomplete="off" maxlength="40">
-          <textarea class="lead-textarea" id="leadMessage" name="message" placeholder="Что нужно оформить? Карточка, баннер, аватарка, профиль..." maxlength="900" required></textarea>
+          <input class="lead-input" id="leadUsername" name="username" type="text" placeholder="Ваш @username, можно не заполнять" autocomplete="off" maxlength="40">
+          <textarea class="lead-textarea" id="leadMessage" name="message" placeholder="Что нужно оформить? Задача, сроки, стиль, примеры..." maxlength="900" required></textarea>
 
           <!-- Антиспам-ловушка: обычный человек это поле не видит, а боты часто заполняют -->
           <div class="lead-honeypot" aria-hidden="true">
@@ -2322,7 +2473,7 @@
             <input id="leadWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
           </div>
 
-          <button class="lead-submit magnet" id="leadSubmit" type="submit">Подтвердить через Telegram</button>
+          <button class="lead-submit magnet" id="leadSubmit" type="submit">Отправить заявку и открыть бота</button>
           <div class="lead-status" id="leadStatus"></div>
         </form>
       </div>
@@ -2872,14 +3023,14 @@
 
       const cooldownLeft = getCooldownLeftMs();
       if (cooldownLeft > 0) {
-        setLeadStatus("error", `Не спамь заявками. Повторно можно через ${formatCooldown(cooldownLeft)}`);
+        setLeadStatus("error", `Подожди немного. Повторно можно через ${formatCooldown(cooldownLeft)}`);
         updateLeadCooldownUi();
         return;
       }
 
       if (website) {
         localStorage.setItem(LEAD_STORAGE_KEY, String(Date.now() + LEAD_COOLDOWN_MS));
-        setLeadStatus("success", "Заявка создана. Подтверди её в Telegram.");
+        setLeadStatus("success", "Заявка создана. Нажми Start в Telegram-боте для подтверждения.");
         updateLeadCooldownUi();
         return;
       }
@@ -2900,12 +3051,12 @@
       const leadSignature = await getLeadSignature(username, message);
       if (wasDuplicateLead(leadSignature)) {
         localStorage.setItem(LEAD_STORAGE_KEY, String(Date.now() + LEAD_COOLDOWN_MS));
-        setLeadStatus("error", "Такая заявка уже создавалась. Подтверди её в Telegram или попробуй позже.");
+        setLeadStatus("error", "Похоже, такая заявка уже создана. Подтверди её в Telegram-боте или попробуй позже.");
         updateLeadCooldownUi();
         return;
       }
 
-      setLeadStatus("", "Создаю заявку. Сейчас откроется Telegram для подтверждения...");
+      setLeadStatus("", "Создаю заявку. Сейчас откроется Telegram-бот для подтверждения...");
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -2937,7 +3088,7 @@
         }
 
         if (!data.confirm_url) {
-          throw new Error("Не пришла ссылка подтверждения Telegram");
+          throw new Error("Не пришла ссылка на Telegram-бота");
         }
 
         saveLeadSignature(leadSignature);
@@ -2945,7 +3096,7 @@
 
         setLeadStatusHtml(
           "success",
-          `Заявка создана. Подтверди её в Telegram: <a href="${data.confirm_url}" target="_blank" rel="noopener">открыть бота</a>`
+          `Заявка создана. Нажми Start в Telegram-боте: <a href="${data.confirm_url}" target="_blank" rel="noopener">открыть бота</a>`
         );
 
         trackSiteEvent("lead_confirm_open", { confirm: "telegram" });
